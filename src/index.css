@@ -8,15 +8,14 @@
   }
   
   html, body, #root {
-    @apply min-h-screen;
+    min-height: 100vh;
     margin: 0;
     padding: 0;
   }
   
   body {
-    @apply overflow-x-hidden;
-    background: linear-gradient(135deg, #0a0118 0%, #1a0b2e 50%, #160b28 100%);
-    background-attachment: fixed;
+    overflow-x: hidden;
+    background: #0a0118;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
   }
   
@@ -24,13 +23,8 @@
     content: '';
     position: fixed;
     inset: 0;
-    background-image: 
-      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(219, 39, 119, 0.15), transparent),
-      radial-gradient(ellipse 60% 50% at 50% 120%, rgba(147, 51, 234, 0.15), transparent),
-      radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1), transparent),
-      radial-gradient(circle at 80% 20%, rgba(236, 72, 153, 0.1), transparent);
-    pointer-events: none;
-    z-index: 0;
+    background: linear-gradient(135deg, #0a0118 0%, #1a0b2e 50%, #160b28 100%);
+    z-index: -1;
   }
   
   #root {
