@@ -3,67 +3,80 @@ import { supabase } from '../lib/supabase'
 
 export const useStore = create((set, get) => ({
   currentUser: null,
-  actions: [],
+  selectedGame: null,
+  gameState: null,
   isLoading: false,
   error: null,
   
   setCurrentUser: (user) => set({ currentUser: user }),
-  
-  setActions: (actions) => set({ actions }),
-  
-  addAction: (action) => set((state) => ({ 
-    actions: [action, ...state.actions] 
-  })),
-  
-  updateAction: (id, updates) => set((state) => ({
-    actions: state.actions.map(a => a.id === id ? { ...a, ...updates } : a)
-  })),
-  
+  setSelectedGame: (game) => set({ selectedGame: game }),
+  setGameState: (gameState) => set({ gameState }),
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
   
-  // Actions
-  createAction: async (targetPlayer, type, prompt) => {
-    const { currentUser } = get()
+  // Initialize game
+  initGame: async (gameType) => {
     set({ isLoading: true, error: null })
-    
     try {
       const { data, error } = await supabase
-        .from('turn_actions')
-        .insert({
-          from_player: currentUser,
-          to_player: targetPlayer,
-          type,
-          content: prompt,
-          status: 'pending'
+        .from('game_state')
+        .update({ 
+          current_game: gameType,
+          current_prompt_id: null,
+          current_prompt_text: null,
+          last_response: null
         })
+        .eq('id', 1)
         .select()
         .single()
       
       if (error) throw error
-      return data
+      set({ gameState: data, selectedGame: gameType })
     } catch (error) {
       set({ error: error.message })
-      return null
     } finally {
       set({ isLoading: false })
     }
   },
   
-  completeAction: async (actionId, response) => {
+  // Spin for new prompt
+  spin: async () => {
+    const { selectedGame, gameState } = get()
     set({ isLoading: true, error: null })
     
     try {
-      const { error } = await supabase
-        .from('turn_actions')
-        .update({ 
-          response, 
-          status: 'completed',
-          completed_at: new Date().toISOString()
-        })
-        .eq('id', actionId)
+      // Get random prompt (excluding last used)
+      const { data: prompts, error: fetchError } = await supabase
+        .from('prompts')
+        .select('*')
+        .eq('game_type', selectedGame)
+        .neq('id', gameState?.last_used_prompt_id || '00000000-0000-0000-0000-000000000000')
       
-      if (error) throw error
+      if (fetchError) throw fetchError
+      if (!prompts || prompts.length === 0) throw new Error('No prompts available')
+      
+      const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)]
+      
+      // Update game state
+      const otherPlayer = gameState.current_turn === 'Nelson' ? 'Nifemi' : 'Nelson'
+      
+      const { data, error: updateError } = await supabase
+        .from('game_state')
+        .update({
+          current_prompt_id: randomPrompt.id,
+          current_prompt_text: randomPrompt.content,
+          current_prompt_type: randomPrompt.prompt_type || 'would-you-rather',
+          current_turn: otherPlayer,
+          last_used_prompt_id: randomPrompt.id,
+          last_response: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', 1)
+        .select()
+        .single()
+      
+      if (updateError) throw updateError
+      set({ gameState: data })
     } catch (error) {
       set({ error: error.message })
     } finally {
@@ -71,17 +84,44 @@ export const useStore = create((set, get) => ({
     }
   },
   
-  // Selectors
-  getPendingActions: () => {
-    const { actions, currentUser } = get()
-    return actions.filter(a => a.to_player === currentUser && a.status === 'pending')
+  // Submit response
+  submitResponse: async (response) => {
+    const { gameState } = get()
+    set({ isLoading: true, error: null })
+    
+    try {
+      const { data, error } = await supabase
+        .from('game_state')
+        .update({
+          last_response: response,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', 1)
+        .select()
+        .single()
+      
+      if (error) throw error
+      set({ gameState: data })
+    } catch (error) {
+      set({ error: error.message })
+    } finally {
+      set({ isLoading: false })
+    }
   },
   
-  getCompletedActions: () => {
-    const { actions, currentUser } = get()
-    return actions.filter(a => 
-      (a.to_player === currentUser || a.from_player === currentUser) && 
-      a.status === 'completed'
-    )
+  // Load game state
+  loadGameState: async () => {
+    try {
+      const { data, error } = await supabase
+        .from('game_state')
+        .select('*')
+        .eq('id', 1)
+        .single()
+      
+      if (error) throw error
+      set({ gameState: data, selectedGame: data.current_game })
+    } catch (error) {
+      set({ error: error.message })
+    }
   }
 }))

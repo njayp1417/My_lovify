@@ -1,54 +1,54 @@
 # Couple Game Hub - Nelson ❤️ Nifemi
 
-Premium turn-based game for two. Completely refactored and enhanced.
-
-## What's New
-
-### Core Improvements
-- **Persistent Action System** - No turn blocking, create actions anytime
-- **Feed-Based Layout** - Pending actions highlighted, completed actions dimmed
-- **Enhanced Animations** - Radial spin wheel, smooth transitions, micro-interactions
-- **Better State Management** - Async actions, loading states, error handling
-
-### UI Enhancements
-- Premium glassmorphism with stronger blur effects
-- Pulsing glow on pending actions
-- Notification badge in header
-- Empty states
-- Loading overlays
-- Error notifications
-
-### New Components
-- `SpinWheel` - Radial spinning animation with anticipation
-- `ActionCard` - Enhanced card with glow effects
-- `EmptyState` - Elegant empty state component
+Premium turn-based game for two with Truth or Dare and Would You Rather.
 
 ## Setup
 
-1. **Install:**
+### 1. Database Setup
+
+Run these SQL files in your Supabase SQL Editor **in order**:
+
+1. `new_schema.sql` - Creates tables
+2. `sample_prompts.sql` - Adds sample prompts (expand to 3000+)
+
+### 2. Environment Variables
+
+Already configured in `.env`:
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+### 3. Run
+
 ```bash
 npm install
-```
-
-2. **Database is already configured** - Your Supabase credentials are set
-
-3. **Run:**
-```bash
 npm run dev
 ```
 
 ## How It Works
 
-- **Login** - Select Nelson or Nifemi
-- **Create Action** - Tap "Create New Action" button
-- **Spin** - Tap the wheel to generate Truth/Dare/Challenge
-- **Respond** - Complete pending actions anytime
-- **Real-time Sync** - Updates instantly across devices
+1. **Login** - Select Nelson or Nifemi (with profile pictures)
+2. **Game Selection** - Choose Truth or Dare OR Would You Rather
+3. **Spin** - Random prompt from database (never repeats last)
+4. **Respond**:
+   - Truth/Would You Rather: Text input
+   - Dare: "Done?" button (turns green on click)
+5. **Turn switches** automatically after response
 
-## Tech Stack
+## Database Structure
 
-- React + Vite
-- Framer Motion (enhanced animations)
-- Tailwind CSS (premium styling)
-- Zustand (improved state)
-- Supabase (realtime + database)
+### Tables:
+- `prompts` - 3000+ questions (1500 truths, 1500 dares, 1000 would-you-rather)
+- `game_state` - Single row that updates constantly (no response history for privacy)
+
+### Privacy:
+- Only 1 game state row
+- Responses overwrite (not stored permanently)
+- No history tracking
+
+## Features
+
+- Profile pictures in header and login
+- Turn tracker with visual indicators
+- Real-time sync via Supabase
+- Mobile-first design
+- Premium dark UI
