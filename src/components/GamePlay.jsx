@@ -1,18 +1,37 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store/gameStore'
 import Header from './Header'
 import SpinWheel from './SpinWheel'
 import LoadingSkeleton from './LoadingSkeleton'
+import ChallengesBanner from './ChallengesBanner'
 import confetti from 'canvas-confetti'
+import { requestNotificationPermission, notifyTurnChange, notifyAnswer } from '../utils/notifications'
 
 export default function GamePlay() {
-  const { currentUser, gameState, spin, submitResponse, isLoading } = useStore()
+  const { currentUser, gameState, spin, submitResponse, isLoading, loadChallenges, updateChallengeProgress } = useStore()
   const [showSpin, setShowSpin] = useState(false)
   const [response, setResponse] = useState('')
   const [dareCompleted, setDareCompleted] = useState(false)
   const [liked, setLiked] = useState(false)
   const lastTap = useRef(0)
+  const prevTurn = useRef(gameState?.current_turn)
+
+  useEffect(() => {
+    requestNotificationPermission()
+    loadChallenges()
+  }, [])
+
+  useEffect(() => {
+    if (gameState?.current_turn && prevTurn.current && prevTurn.current !== gameState.current_turn) {
+      if (gameState.current_turn === currentUser) {
+        notifyTurnChange(prevTurn.current)
+      } else {
+        notifyAnswer()
+      }
+    }
+    prevTurn.current = gameState?.current_turn
+  }, [gameState?.current_turn, currentUser])
 
   const isMyTurn = gameState?.current_turn === currentUser
   const hasPrompt = gameState?.current_prompt_text
@@ -33,6 +52,7 @@ export default function GamePlay() {
       await submitResponse(response)
       setResponse('')
     }
+    updateChallengeProgress()
   }
 
   const triggerConfetti = () => {
@@ -68,6 +88,8 @@ export default function GamePlay() {
       <Header currentUser={currentUser} currentTurn={gameState?.current_turn} />
 
       <div className="max-w-lg mx-auto px-6 pt-24">
+        <ChallengesBanner />
+        
         {isMyTurn && (
           <motion.button
             onClick={() => setShowSpin(true)}

@@ -1,10 +1,12 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
+import { notifyTurnChange, notifyAnswer } from '../utils/notifications'
 
 export const useStore = create((set, get) => ({
   currentUser: null,
   selectedGame: null,
   gameState: null,
+  challenges: [],
   isLoading: false,
   error: null,
   
@@ -122,6 +124,58 @@ export const useStore = create((set, get) => ({
       set({ gameState: data, selectedGame: data.current_game })
     } catch (error) {
       set({ error: error.message })
+    }
+  },
+
+  // Add custom prompt
+  addCustomPrompt: async (prompt) => {
+    set({ isLoading: true, error: null })
+    try {
+      const { error } = await supabase
+        .from('prompts')
+        .insert([prompt])
+      
+      if (error) throw error
+    } catch (error) {
+      set({ error: error.message })
+    } finally {
+      set({ isLoading: false })
+    }
+  },
+
+  // Load challenges
+  loadChallenges: async () => {
+    try {
+      const { data, error } = await supabase
+        .from('challenges')
+        .select('*')
+        .order('created_at', { ascending: false })
+      
+      if (error) throw error
+      set({ challenges: data || [] })
+    } catch (error) {
+      set({ error: error.message })
+    }
+  },
+
+  // Update challenge progress
+  updateChallengeProgress: async () => {
+    const { challenges } = get()
+    const activeChallenge = challenges.find(c => !c.completed)
+    
+    if (activeChallenge) {
+      const newCount = activeChallenge.current_count + 1
+      const completed = newCount >= activeChallenge.goal_count
+      
+      await supabase
+        .from('challenges')
+        .update({ 
+          current_count: newCount,
+          completed 
+        })
+        .eq('id', activeChallenge.id)
+      
+      get().loadChallenges()
     }
   }
 }))

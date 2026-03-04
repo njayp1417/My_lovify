@@ -1,6 +1,11 @@
 import { motion } from 'framer-motion'
+import { useState } from 'react'
+import { AnimatePresence } from 'framer-motion'
+import CustomPromptModal from './CustomPromptModal'
 
 export default function GameSelection({ onSelectGame }) {
+  const [showCustomModal, setShowCustomModal] = useState(false)
+  const [selectedGameForCustom, setSelectedGameForCustom] = useState(null)
   const games = [
     {
       id: 'truth-or-dare',
@@ -59,7 +64,30 @@ export default function GameSelection({ onSelectGame }) {
               </div>
             </motion.button>
           ))}
+
+          <motion.button
+            onClick={() => {
+              setSelectedGameForCustom('truth-or-dare')
+              setShowCustomModal(true)
+            }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            whileTap={{ scale: 0.97 }}
+            className="w-full p-4 rounded-2xl bg-white/5 border-2 border-dashed border-white/20 text-white hover:bg-white/10 transition-all"
+          >
+            <span className="text-lg">+ Create Custom Prompt</span>
+          </motion.button>
         </div>
+
+        <AnimatePresence>
+          {showCustomModal && (
+            <CustomPromptModal
+              onClose={() => setShowCustomModal(false)}
+              gameType={selectedGameForCustom}
+            />
+          )}
+        </AnimatePresence>
       </motion.div>
     </div>
   )
