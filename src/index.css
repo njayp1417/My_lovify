@@ -17,6 +17,7 @@
     overflow-x: hidden;
     background: #0a0118;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    transition: background 0.3s ease;
   }
   
   body::before {
@@ -25,6 +26,15 @@
     inset: 0;
     background: linear-gradient(135deg, #0a0118 0%, #1a0b2e 50%, #160b28 100%);
     z-index: -1;
+    transition: background 0.3s ease;
+  }
+
+  html.light-mode body {
+    background: #f5f5f7;
+  }
+
+  html.light-mode body::before {
+    background: linear-gradient(135deg, #f5f5f7 0%, #e8e8ed 50%, #d2d2d7 100%);
   }
   
   #root {

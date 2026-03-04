@@ -1,6 +1,16 @@
 import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
 
 export default function Header({ currentUser, currentTurn }) {
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('darkMode')
+    return saved !== null ? JSON.parse(saved) : true
+  })
+
+  useEffect(() => {
+    localStorage.setItem('darkMode', JSON.stringify(darkMode))
+    document.documentElement.classList.toggle('light-mode', !darkMode)
+  }, [darkMode])
   const players = [
     { name: 'Nelson', image: '/nelson.jpg', gradient: 'from-blue-400 to-purple-500' },
     { name: 'Nifemi', image: '/nifemi.jpg', gradient: 'from-pink-400 to-rose-500' }
@@ -59,8 +69,15 @@ export default function Header({ currentUser, currentTurn }) {
             )
           })}
 
-          <div className="absolute left-1/2 -translate-x-1/2">
+          <div className="absolute left-1/2 -translate-x-1/2 flex items-center space-x-2">
             <span className="text-white/60 text-lg">❤️</span>
+            <motion.button
+              onClick={() => setDarkMode(!darkMode)}
+              whileTap={{ scale: 0.9 }}
+              className="ml-4 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-sm"
+            >
+              {darkMode ? '🌙' : '☀️'}
+            </motion.button>
           </div>
         </div>
       </div>

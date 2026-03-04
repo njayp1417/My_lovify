@@ -1,14 +1,18 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store/gameStore'
 import Header from './Header'
 import SpinWheel from './SpinWheel'
+import LoadingSkeleton from './LoadingSkeleton'
+import confetti from 'canvas-confetti'
 
 export default function GamePlay() {
   const { currentUser, gameState, spin, submitResponse, isLoading } = useStore()
   const [showSpin, setShowSpin] = useState(false)
   const [response, setResponse] = useState('')
   const [dareCompleted, setDareCompleted] = useState(false)
+  const [liked, setLiked] = useState(false)
+  const lastTap = useRef(0)
 
   const isMyTurn = gameState?.current_turn === currentUser
   const hasPrompt = gameState?.current_prompt_text
@@ -23,11 +27,34 @@ export default function GamePlay() {
     if (promptType === 'dare') {
       await submitResponse('Completed')
       setDareCompleted(false)
+      triggerConfetti()
     } else {
       if (!response.trim()) return
       await submitResponse(response)
       setResponse('')
     }
+  }
+
+  const triggerConfetti = () => {
+    const difficulty = gameState?.current_prompt_difficulty
+    if (difficulty === 'wild' || difficulty === 'drunk') {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#ec4899', '#a855f7', '#f43f5e']
+      })
+    }
+  }
+
+  const handleDoubleTap = () => {
+    const now = Date.now()
+    const DOUBLE_TAP_DELAY = 300
+    if (now - lastTap.current < DOUBLE_TAP_DELAY) {
+      setLiked(true)
+      setTimeout(() => setLiked(false), 1000)
+    }
+    lastTap.current = now
   }
 
   const getPromptColor = () => {
@@ -69,9 +96,26 @@ export default function GamePlay() {
               {promptType?.toUpperCase() || 'QUESTION'}
             </div>
 
-            <p className="text-white text-xl leading-relaxed mb-6">
-              {gameState.current_prompt_text}
-            </p>
+            <div 
+              className="relative"
+              onClick={handleDoubleTap}
+            >
+              <p className="text-white text-xl leading-relaxed mb-6">
+                {gameState.current_prompt_text}
+              </p>
+              <AnimatePresence>
+                {liked && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 1 }}
+                    animate={{ scale: 1.5, opacity: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                  >
+                    <span className="text-6xl">❤️</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             {isMyTurn && (
               <div className="space-y-4">
@@ -183,19 +227,7 @@ export default function GamePlay() {
         )}
       </AnimatePresence>
 
-      {isLoading && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-        >
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-            className="w-12 h-12 rounded-full border-4 border-white/20 border-t-white"
-          />
-        </motion.div>
-      )}
+      {isLoading && <LoadingSkeleton />}
     </div>
   )
 }
