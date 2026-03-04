@@ -9,7 +9,7 @@ import confetti from 'canvas-confetti'
 import { requestNotificationPermission, notifyTurnChange, notifyAnswer } from '../utils/notifications'
 
 export default function GamePlay() {
-  const { currentUser, gameState, spin, submitResponse, isLoading, loadChallenges, updateChallengeProgress } = useStore()
+  const { currentUser, gameState, spin, submitResponse, isLoading, loadChallenges, updateChallengeProgress, resetToGameSelection } = useStore()
   const [showSpin, setShowSpin] = useState(false)
   const [response, setResponse] = useState('')
   const [dareCompleted, setDareCompleted] = useState(false)
@@ -85,7 +85,11 @@ export default function GamePlay() {
 
   return (
     <div className="min-h-screen pb-24">
-      <Header currentUser={currentUser} currentTurn={gameState?.current_turn} />
+      <Header 
+        currentUser={currentUser} 
+        currentTurn={gameState?.current_turn}
+        onBackToMenu={resetToGameSelection}
+      />
 
       <div className="max-w-lg mx-auto px-6 pt-24">
         <ChallengesBanner />

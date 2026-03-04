@@ -16,6 +16,9 @@ export const useStore = create((set, get) => ({
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
   
+  // Reset to game selection
+  resetToGameSelection: () => set({ selectedGame: null }),
+  
   // Initialize game
   initGame: async (gameType) => {
     set({ isLoading: true, error: null })

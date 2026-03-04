@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 
-export default function Header({ currentUser, currentTurn }) {
+export default function Header({ currentUser, currentTurn, onBackToMenu }) {
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode')
     return saved !== null ? JSON.parse(saved) : true
@@ -24,6 +24,16 @@ export default function Header({ currentUser, currentTurn }) {
     >
       <div className="max-w-lg mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
+          {onBackToMenu && (
+            <motion.button
+              onClick={onBackToMenu}
+              whileTap={{ scale: 0.9 }}
+              className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/80 hover:bg-white/20 transition-all"
+            >
+              ←
+            </motion.button>
+          )}
+
           {players.map((player) => {
             const isActive = currentTurn === player.name
             const isCurrentUser = currentUser === player.name
