@@ -119,7 +119,8 @@ export const useStore = create((set, get) => ({
 
   // Clear round (asker clicks OK)
   clearRound: async () => {
-    const { currentUser } = get()
+    const { gameState } = get()
+    const otherPlayer = gameState.asked_by === 'Nelson' ? 'Nifemi' : 'Nelson'
     set({ isLoading: true, error: null })
     
     try {
@@ -132,7 +133,7 @@ export const useStore = create((set, get) => ({
           current_prompt_difficulty: null,
           last_response: null,
           asked_by: null,
-          current_turn: currentUser, // Asker keeps the turn to spin again
+          current_turn: otherPlayer, // Switch to other player
           updated_at: new Date().toISOString()
         })
         .eq('id', 1)
