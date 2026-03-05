@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test OK Button Logic</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #1a1a1a; color: white; }
+        .test-case { margin: 20px 0; padding: 15px; border: 1px solid #333; border-radius: 8px; }
+        .ok-button { background: green; color: white; padding: 10px 20px; border: none; border-radius: 5px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h1>OK Button Logic Test</h1>
+    
+    <div class="test-case">
+        <h3>Test Case 1: Nelson asks, Nifemi answers</h3>
+        <p>Current User: Nelson</p>
+        <p>Asked By: Nelson</p>
+        <p>Has Response: Yes</p>
+        <p>Should show OK button: <span id="test1-result"></span></p>
+        <button class="ok-button" id="test1-button">OK</button>
+    </div>
+    
+    <div class="test-case">
+        <h3>Test Case 2: Nifemi asks, Nelson answers</h3>
+        <p>Current User: Nifemi</p>
+        <p>Asked By: Nifemi</p>
+        <p>Has Response: Yes</p>
+        <p>Should show OK button: <span id="test2-result"></span></p>
+        <button class="ok-button" id="test2-button">OK</button>
+    </div>
+    
+    <div class="test-case">
+        <h3>Test Case 3: Nelson answers Nifemi's question</h3>
+        <p>Current User: Nelson</p>
+        <p>Asked By: Nifemi</p>
+        <p>Has Response: Yes</p>
+        <p>Should show OK button: <span id="test3-result"></span></p>
+        <button class="ok-button hidden" id="test3-button">OK</button>
+    </div>
+
+    <script>
+        // Test the logic: askedByMe && hasResponse
+        function testOKButton(currentUser, askedBy, hasResponse, testId) {
+            const askedByMe = askedBy === currentUser;
+            const shouldShow = askedByMe && hasResponse;
+            
+            document.getElementById(`test${testId}-result`).textContent = shouldShow ? 'YES' : 'NO';
+            document.getElementById(`test${testId}-result`).style.color = shouldShow ? 'green' : 'red';
+            
+            if (!shouldShow) {
+                document.getElementById(`test${testId}-button`).classList.add('hidden');
+            }
+        }
+        
+        // Run tests
+        testOKButton('Nelson', 'Nelson', true, 1);  // Should show OK
+        testOKButton('Nifemi', 'Nifemi', true, 2);  // Should show OK  
+        testOKButton('Nelson', 'Nifemi', true, 3);  // Should NOT show OK
+    </script>
+</body>
+</html>

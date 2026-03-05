@@ -7,6 +7,7 @@ import LoadingSkeleton from './LoadingSkeleton'
 import ChallengesBanner from './ChallengesBanner'
 import confetti from 'canvas-confetti'
 import { requestNotificationPermission, notifyTurnChange, notifyAnswer } from '../utils/notifications'
+import DebugGameState from './DebugGameState'
 
 export default function GamePlay() {
   const { currentUser, gameState, spin, submitResponse, clearRound, isLoading, loadChallenges, updateChallengeProgress, resetToGameSelection } = useStore()
@@ -36,7 +37,10 @@ export default function GamePlay() {
   const isMyTurn = gameState?.current_turn === currentUser
   const hasPrompt = gameState?.current_prompt_text
   const promptType = gameState?.current_prompt_type
-  const askedByMe = gameState?.asked_by === currentUser
+  // Fallback logic: if asked_by doesn't exist, assume the person who is NOT current_turn asked
+  const askedByMe = gameState?.asked_by ? 
+    gameState.asked_by === currentUser : 
+    (hasPrompt && gameState?.current_turn !== currentUser)
   const hasResponse = gameState?.last_response
 
   const handleSpin = async () => {
@@ -87,6 +91,7 @@ export default function GamePlay() {
 
   return (
     <div className="min-h-screen pb-24">
+      <DebugGameState />
       <Header 
         currentUser={currentUser} 
         currentTurn={gameState?.current_turn}

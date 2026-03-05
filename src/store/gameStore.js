@@ -83,8 +83,10 @@ export const useStore = create((set, get) => ({
         .single()
       
       if (updateError) throw updateError
+      console.log('Spin result:', data) // Debug log
       set({ gameState: data })
     } catch (error) {
+      console.error('Spin error:', error)
       set({ error: error.message })
     } finally {
       set({ isLoading: false })
@@ -109,8 +111,10 @@ export const useStore = create((set, get) => ({
         .single()
       
       if (error) throw error
+      console.log('Submit response result:', data) // Debug log
       set({ gameState: data })
     } catch (error) {
+      console.error('Submit response error:', error)
       set({ error: error.message })
     } finally {
       set({ isLoading: false })
@@ -143,6 +147,7 @@ export const useStore = create((set, get) => ({
       if (error) throw error
       set({ gameState: data })
     } catch (error) {
+      console.error('Clear round error:', error)
       set({ error: error.message })
     } finally {
       set({ isLoading: false })
