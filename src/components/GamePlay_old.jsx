@@ -9,7 +9,7 @@ import confetti from 'canvas-confetti'
 import { requestNotificationPermission, notifyTurnChange, notifyAnswer } from '../utils/notifications'
 
 export default function GamePlay() {
-  const { currentUser, gameState, spin, submitResponse, clearRound, isLoading, loadChallenges, updateChallengeProgress, resetToGameSelection } = useStore()
+  const { currentUser, gameState, spin, submitResponse, isLoading, loadChallenges, updateChallengeProgress, resetToGameSelection } = useStore()
   const [showSpin, setShowSpin] = useState(false)
   const [response, setResponse] = useState('')
   const [dareCompleted, setDareCompleted] = useState(false)
@@ -36,8 +36,6 @@ export default function GamePlay() {
   const isMyTurn = gameState?.current_turn === currentUser
   const hasPrompt = gameState?.current_prompt_text
   const promptType = gameState?.current_prompt_type
-  const askedByMe = gameState?.asked_by === currentUser
-  const hasResponse = gameState?.last_response
 
   const handleSpin = async () => {
     await spin()
@@ -96,8 +94,7 @@ export default function GamePlay() {
       <div className="max-w-lg mx-auto px-6 pt-24">
         <ChallengesBanner />
         
-        {/* Show spin button only when it's my turn AND no active prompt */}
-        {isMyTurn && !hasPrompt && (
+        {isMyTurn && (
           <motion.button
             onClick={() => setShowSpin(true)}
             whileTap={{ scale: 0.98 }}
@@ -114,7 +111,6 @@ export default function GamePlay() {
           </motion.button>
         )}
 
-        {/* Show prompt card when there's an active prompt */}
         {hasPrompt && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -147,20 +143,7 @@ export default function GamePlay() {
               </AnimatePresence>
             </div>
 
-            {/* Show response area if there's an answer */}
-            {hasResponse && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white/5 rounded-2xl p-4 border border-white/10 mb-4"
-              >
-                <p className="text-white/60 text-sm mb-2">Answer:</p>
-                <p className="text-white text-lg">{gameState.last_response}</p>
-              </motion.div>
-            )}
-
-            {/* Input section - only for person who needs to answer */}
-            {isMyTurn && !askedByMe && !hasResponse && (
+            {isMyTurn && (
               <div className="space-y-4">
                 {promptType === 'dare' ? (
                   <motion.button
@@ -200,44 +183,33 @@ export default function GamePlay() {
               </div>
             )}
 
-            {/* Waiting message for person who asked */}
-            {askedByMe && !hasResponse && (
-              <motion.div
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="text-center py-4"
-              >
-                <p className="text-white/60">Waiting for {gameState.current_turn} to answer...</p>
-              </motion.div>
-            )}
-
-            {/* OK button for person who asked (after getting answer) */}
-            {askedByMe && hasResponse && (
-              <motion.button
-                onClick={clearRound}
-                whileTap={{ scale: 0.98 }}
-                disabled={isLoading}
-                className="w-full py-4 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold"
-              >
-                OK
-              </motion.button>
-            )}
-
-            {/* Waiting for OK message for person who answered */}
-            {!askedByMe && hasResponse && (
-              <motion.div
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="text-center py-4"
-              >
-                <p className="text-white/60">Waiting for {gameState.asked_by} to continue...</p>
-              </motion.div>
+            {!isMyTurn && (
+              <div className="space-y-4">
+                {gameState.last_response && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white/5 rounded-2xl p-4 border border-white/10"
+                  >
+                    <p className="text-white/60 text-sm mb-2">Answer:</p>
+                    <p className="text-white text-lg">{gameState.last_response}</p>
+                  </motion.div>
+                )}
+                <motion.div
+                  animate={{ opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="text-center py-4"
+                >
+                  <p className="text-white/60">
+                    {gameState.last_response ? `${gameState.current_turn} answered!` : `Waiting for ${gameState.current_turn}...`}
+                  </p>
+                </motion.div>
+              </div>
             )}
           </motion.div>
         )}
 
-        {/* Show default state when no prompt and not my turn */}
-        {!hasPrompt && !isMyTurn && (
+        {!hasPrompt && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -251,7 +223,7 @@ export default function GamePlay() {
               transition={{ duration: 3, repeat: Infinity }}
               className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 mx-auto mb-6"
             />
-            <p className="text-white/40">Waiting for {gameState?.current_turn || 'partner'} to spin...</p>
+            <p className="text-white/40">Tap spin to start the game</p>
           </motion.div>
         )}
       </div>

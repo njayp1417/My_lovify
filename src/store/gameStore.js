@@ -46,7 +46,7 @@ export const useStore = create((set, get) => ({
   
   // Spin for new prompt
   spin: async () => {
-    const { selectedGame, gameState } = get()
+    const { selectedGame, currentUser } = get()
     set({ isLoading: true, error: null })
     
     try {
@@ -55,15 +55,15 @@ export const useStore = create((set, get) => ({
         .from('prompts')
         .select('*')
         .eq('game_type', selectedGame)
-        .neq('id', gameState?.last_used_prompt_id || '00000000-0000-0000-0000-000000000000')
+        .neq('id', get().gameState?.last_used_prompt_id || '00000000-0000-0000-0000-000000000000')
       
       if (fetchError) throw fetchError
       if (!prompts || prompts.length === 0) throw new Error('No prompts available')
       
       const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)]
       
-      // Update game state
-      const otherPlayer = gameState.current_turn === 'Nelson' ? 'Nifemi' : 'Nelson'
+      // Other player answers the question
+      const otherPlayer = currentUser === 'Nelson' ? 'Nifemi' : 'Nelson'
       
       const { data, error: updateError } = await supabase
         .from('game_state')
@@ -71,7 +71,9 @@ export const useStore = create((set, get) => ({
           current_prompt_id: randomPrompt.id,
           current_prompt_text: randomPrompt.content,
           current_prompt_type: randomPrompt.prompt_type || 'would-you-rather',
-          current_turn: otherPlayer,
+          current_prompt_difficulty: randomPrompt.difficulty,
+          current_turn: otherPlayer, // Other player answers
+          asked_by: currentUser, // Track who asked
           last_used_prompt_id: randomPrompt.id,
           last_response: null,
           updated_at: new Date().toISOString()
@@ -89,7 +91,7 @@ export const useStore = create((set, get) => ({
     }
   },
   
-  // Submit response
+  // Submit response (switches turn back to asker)
   submitResponse: async (response) => {
     const { gameState } = get()
     set({ isLoading: true, error: null })
@@ -99,6 +101,38 @@ export const useStore = create((set, get) => ({
         .from('game_state')
         .update({
           last_response: response,
+          current_turn: gameState.asked_by, // Switch back to person who asked
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', 1)
+        .select()
+        .single()
+      
+      if (error) throw error
+      set({ gameState: data })
+    } catch (error) {
+      set({ error: error.message })
+    } finally {
+      set({ isLoading: false })
+    }
+  },
+
+  // Clear round (asker clicks OK)
+  clearRound: async () => {
+    const { currentUser } = get()
+    set({ isLoading: true, error: null })
+    
+    try {
+      const { data, error } = await supabase
+        .from('game_state')
+        .update({
+          current_prompt_id: null,
+          current_prompt_text: null,
+          current_prompt_type: null,
+          current_prompt_difficulty: null,
+          last_response: null,
+          asked_by: null,
+          current_turn: currentUser, // Asker keeps the turn to spin again
           updated_at: new Date().toISOString()
         })
         .eq('id', 1)
