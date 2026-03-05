@@ -7,7 +7,6 @@ import LoadingSkeleton from './LoadingSkeleton'
 import ChallengesBanner from './ChallengesBanner'
 import confetti from 'canvas-confetti'
 import { requestNotificationPermission, notifyTurnChange, notifyAnswer } from '../utils/notifications'
-import DebugGameState from './DebugGameState'
 
 export default function GamePlay() {
   const { currentUser, gameState, spin, submitResponse, clearRound, isLoading, loadChallenges, updateChallengeProgress, resetToGameSelection } = useStore()
@@ -91,7 +90,6 @@ export default function GamePlay() {
 
   return (
     <div className="min-h-screen pb-24">
-      <DebugGameState />
       <Header 
         currentUser={currentUser} 
         currentTurn={gameState?.current_turn}
@@ -227,6 +225,15 @@ export default function GamePlay() {
                 OK
               </motion.button>
             )}
+
+            {/* Exit Game Button */}
+            <motion.button
+              onClick={resetToGameSelection}
+              whileTap={{ scale: 0.98 }}
+              className="w-full py-3 rounded-full bg-white/10 border border-white/20 text-white/80 font-medium mt-4"
+            >
+              Exit Game
+            </motion.button>
 
             {/* Waiting for OK message for person who answered */}
             {!askedByMe && hasResponse && (
