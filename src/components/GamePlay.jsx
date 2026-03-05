@@ -184,13 +184,27 @@ export default function GamePlay() {
             )}
 
             {!isMyTurn && (
-              <motion.div
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="text-center py-4"
-              >
-                <p className="text-white/60">Waiting for {gameState.current_turn}...</p>
-              </motion.div>
+              <div className="space-y-4">
+                {gameState.last_response && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white/5 rounded-2xl p-4 border border-white/10"
+                  >
+                    <p className="text-white/60 text-sm mb-2">Answer:</p>
+                    <p className="text-white text-lg">{gameState.last_response}</p>
+                  </motion.div>
+                )}
+                <motion.div
+                  animate={{ opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="text-center py-4"
+                >
+                  <p className="text-white/60">
+                    {gameState.last_response ? `${gameState.current_turn} answered!` : `Waiting for ${gameState.current_turn}...`}
+                  </p>
+                </motion.div>
+              </div>
             )}
           </motion.div>
         )}
